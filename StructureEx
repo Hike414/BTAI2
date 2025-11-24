@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity 0.8.30;
+
+contract StructureEx
+ {
+     struct Person
+     {
+        string name;
+        uint age;
+        address walletAddress;
+        bool isActive;
+    }
+
+  Person[] public customers;
+   
+
+   function addCustomer(string memory _n, uint _a, address  _add, bool _status) public 
+    {
+        Person memory p1 = Person({name: _n,age:_a, walletAddress:_add, isActive: _status});
+        customers.push(p1);
+
+    }
+  
+   function getCustomersCount() public view returns (uint)
+   {
+    return customers.length;
+   }
+   function displayCustomer() public view returns(Person[] memory)
+   {
+     return(customers);
+   }
+   
+   function displayParticularCustomer(address _add) public view returns(Person memory)
+   {
+      Person memory p1;
+    for(uint i=0;i<customers.length;i++)
+    {
+        Person memory p=customers[i];
+
+        if(p.walletAddress==_add)
+          {
+            p1=p;
+          }
+    }
+     return(p1);
+   }
+
+   function displayAllNames() public view returns (string[] memory)
+    {
+        string[] memory names1=new string[](customers.length);
+        for(uint i=0;i<customers.length;i++)
+        {
+            Person memory p=customers[i];
+            names1[i]=p.name;
+        }
+        return (names1);
+    }
+   
+ }
