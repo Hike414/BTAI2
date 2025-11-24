@@ -1,0 +1,100 @@
+H:/> mkdir Online-Voting
+H:/> cd Online-Voting
+H:/Online-Voting> truffle init
+
+OnlineVoting.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.16;
+
+contract OnlineVoting {
+    struct Candidate {
+        uint id;
+        string name;
+        uint voteCount;
+    }
+
+    struct Voter {
+        bool voted;
+        uint vote;
+    }
+
+    address public admin;
+    uint public candidateCount;
+    mapping(uint => Candidate) public candidates;
+    mapping(address => Voter) public voters;
+
+    event CandidateAdded(uint id, string name);
+    event VoteCasted(address voter, uint candidateId);
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    //Add a new candidate (only admin)
+    function addCandidate(string memory _name) public {
+        require(msg.sender == admin, "Only admin can add candidates");
+        candidateCount++;
+        candidates[candidateCount] = Candidate(candidateCount, _name, 0);
+        emit CandidateAdded(candidateCount, _name);
+    }
+
+    // Cast your vote
+    function vote(uint _candidateId) public {
+        require(!voters[msg.sender].voted, "Already voted");
+        require(_candidateId > 0 && _candidateId <= candidateCount, "Invalid candidate");
+
+        voters[msg.sender].voted = true;
+        voters[msg.sender].vote = _candidateId;
+
+        candidates[_candidateId].voteCount++;
+
+        emit VoteCasted(msg.sender, _candidateId);
+    }
+
+    //  Show all candidates with vote counts
+    function showCandidates() public view returns (Candidate[] memory) {
+        Candidate[] memory allCandidates = new Candidate[](candidateCount);
+        for (uint i = 0; i < candidateCount; i++) {
+            allCandidates[i] = candidates[i + 1];
+        }
+        return allCandidates;
+    }
+
+    // Get winner details
+    function getWinner() public view returns (string memory winnerName, uint winnerVotes) {
+        uint maxVotes = 0;
+        string memory name = "";
+        for (uint i = 1; i <= candidateCount; i++) {
+            if (candidates[i].voteCount > maxVotes) {
+                maxVotes = candidates[i].voteCount;
+                name = candidates[i].name;
+            }
+        }
+        return (name, maxVotes);
+    }
+}
+
+
+Change the truffle.js file as earlier and add the following code in 1_initial_migrations.js file
+const OnlineVoting = artifacts.require("OnlineVoting");
+
+module.exports = function (deployer) {
+  deployer.deploy(OnlineVoting);
+};
+H:/ Online-Voting>truffle Compile
+Now Open Ganache with new workspace  add projectselect the truffle-config.js file from Online-Voting folder
+Migrate the project to ganache server with
+H:/ Online-Voting>truffle migrate - -reset - -network development
+Next interact with the contract as follows
+H:/ Online-Voting>truffle console
+
+truffle(development)> let vote = await OnlineVoting.deployed()
+truffle(development)> await vote.addCandidate("Alice")
+truffle(development)> await vote.addCandidate("Bob")
+truffle(development)> await vote.vote(1, {from: accounts[1]})
+truffle(development)> await vote.vote(2, {from: accounts[2]})
+truffle(development)> await vote.vote(2, {from: accounts[3]})
+truffle(development)> await vote.vote(2, {from: accounts[4]})
+truffle(development)> let all = await vote.showCandidates()
+truffle(development)> all
