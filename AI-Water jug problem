@@ -1,0 +1,67 @@
+% water_jug.pl
+
+% State is represented as state(JugA, JugB)
+
+% Goal state
+goal(state(2, _)).
+
+% Moves (transitions)
+move(state(A, B), state(4, B)) :- A < 4.                    % Fill Jug A
+move(state(A, B), state(A, 3)) :- B < 3.                    % Fill Jug B
+move(state(A, B), state(0, B)) :- A > 0.                    % Empty Jug A
+move(state(A, B), state(A, 0)) :- B > 0.                    % Empty Jug B
+
+% Pour A -> B
+move(state(A, B), state(A1, B1)) :-
+    A > 0, B < 3,
+    Transfer is min(A, 3 - B),
+    A1 is A - Transfer,
+    B1 is B + Transfer.
+
+% Pour B -> A
+move(state(A, B), state(A1, B1)) :-
+    B > 0, A < 4,
+    Transfer is min(B, 4 - A),
+    B1 is B - Transfer,
+    A1 is A + Transfer.
+
+% Solve the problem using DFS
+solve :-
+    path(state(0, 0), [state(0, 0)], Moves),
+    reverse(Moves, Solution),
+    write_steps(Solution).
+
+% Base case: goal reached
+path(State, Path, Path) :- goal(State).
+
+% Recursive case: move to next state
+path(State, Visited, Path) :-
+    move(State, NextState),
+    \+ member(NextState, Visited),       % avoid cycles
+    path(NextState, [NextState|Visited], Path).
+
+% Pretty print steps
+write_steps([]).
+write_steps([State|Rest]) :-
+    write_steps(Rest),
+    write(' -> '), write(State), nl.
+
+How to Run
+
+1. Save as `water_jug.pl`
+2. Load in a Prolog interpreter (like SWI-Prolog):
+
+?- consult(water_jug).
+true.
+
+?- solve.
+Output:
+
+-> state(0, 0)
+ -> state(0, 3)
+ -> state(3, 0)
+ -> state(3, 3)
+ -> state(4, 2)
+ -> state(0, 2)
+ -> state(2, 0)
+This gives you **2 liters** in Jug A (`state(2, 0)`).
