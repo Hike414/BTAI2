@@ -1,0 +1,60 @@
+% Define the goal state
+goal_state([1,2,3,4,5,6,7,8,0]).
+
+% Move predicates: define possible moves of the blank (0)
+move([0,A,B,C,D,E,F,G,H], [A,0,B,C,D,E,F,G,H]). % right
+move([A,0,B,C,D,E,F,G,H], [A,B,0,C,D,E,F,G,H]). % right
+move([A,B,0,C,D,E,F,G,H], [A,B,0,C,D,E,F,G,H]). % invalid
+move([A,B,C,0,D,E,F,G,H], [A,B,C,D,0,E,F,G,H]). % right
+move([A,B,C,D,0,E,F,G,H], [A,B,C,D,E,0,F,G,H]).
+move([A,B,C,D,E,0,F,G,H], [A,B,C,D,E,0,F,G,H]).
+move([A,B,C,D,E,F,0,G,H], [A,B,C,D,E,F,G,0,H]).
+move([A,B,C,D,E,F,G,0,H], [A,B,C,D,E,F,G,H,0]).
+move([A,B,C,D,E,F,G,H,0], [A,B,C,D,E,F,G,H,0]).
+
+move([A,B,C,D,E,F,G,H,0], [A,B,C,D,E,0,G,H,F]). % up
+move([A,B,C,D,E,F,G,0,H], [A,B,C,D,0,F,G,E,H]).
+move([A,B,C,D,E,F,0,G,H], [A,B,C,0,E,F,D,G,H]).
+move([A,B,C,D,E,F,G,H,0], [A,B,C,D,E,F,G,0,H]). % left
+move([A,B,C,D,E,F,G,H,0], [A,B,C,D,E,F,G,H,0]). % stay
+
+% Adjacency predicate: generates the next state
+adjacent(X, Y) :- move(X, Y).
+
+% BFS solver
+solve(Start) :-
+    bfs([[Start]], [], SolutionPath),
+    print_solution(SolutionPath).
+
+% BFS implementation
+bfs([[State|Path]|_], _, [State|Path]) :-
+    goal_state(State).
+
+bfs([[State|Path]|Rest], Visited, SolutionPath) :-
+    findall([NextState,State|Path],
+            (adjacent(State, NextState),
+             \+ member(NextState, [State|Path]),
+             \+ member(NextState, Visited)),
+            NewPaths),
+    append(Rest, NewPaths, UpdatedPaths),
+    bfs(UpdatedPaths, [State|Visited], SolutionPath).
+
+% Print solution
+print_solution([]).
+print_solution([State|Rest]) :-
+    print_state(State), nl,
+    print_solution(Rest).
+
+% Print a state in 3x3 grid format
+print_state([A,B,C,D,E,F,G,H,I]) :-
+    format('~w ~w ~w~n~w ~w ~w~n~w ~w ~w~n', [A,B,C,D,E,F,G,H,I]).
+
+How to Run
+
+1. Save the program in a file, e.g., `eight_puzzle.pl`.
+2. Load it in your Prolog interpreter:
+
+   ?- [eight_puzzle].
+3. Run with an initial state:
+
+   ?- solve([2,8,3,1,6,4,7,0,5]).
