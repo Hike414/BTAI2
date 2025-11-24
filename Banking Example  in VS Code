@@ -1,0 +1,85 @@
+1.	mkdir BankingExInVSCodeG
+2.	cd BankingExInVSCodeG
+3.	H:\ BankingExInVSCodeG >truffle init
+4.	Copy the following code in contracts folder
+
+BankingEx.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.16;
+
+contract SimpleBank {
+    // Mapping to store user balances
+    mapping(address => uint256) private balances;
+
+    // Events for logging
+    event Deposit(address indexed account, uint256 amount);
+    event Withdraw(address indexed account, uint256 amount);
+
+    // Deposit ether into the bank
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit amount must be greater than zero");
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    // Withdraw ether from the bank
+    function withdraw(uint256 _amount) public {
+        require(balances[msg.sender] >= _amount, "Insufficient balance");
+        balances[msg.sender] -= _amount;
+        payable(msg.sender).transfer(_amount);
+        emit Withdraw(msg.sender, _amount);
+    }
+
+    // Check account balance
+    function getBalance() public view returns (uint256) {
+        return balances[msg.sender];
+    }
+}
+
+
+1.	Change the truffle-config.js file as 
+	development: {
+	      host: "127.0.0.1",     // Localhost (default: none)
+	      port: 7545,            // Standard Ethereum port (default: none)
+	      network_id: "*",       // Any network (default: none)
+	     },
+
+compilers: {
+    solc: {
+      version: "0.8.16",      // Fetch exact version from solc-bin (default: truffle's version)
+      // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
+      // settings: {          // See the solidity docs for advice about optimization and evmVersion
+      //  optimizer: {
+      //    enabled: false,
+      //    runs: 200
+      //  },
+      //  evmVersion: "byzantium"
+      // }
+    }
+  },
+
+6. H:\ BankingExInVSCodeG >truffle compile
+7. It will create SimpleBank.json file in build folder.
+8. create 1_initial_Migration.js as
+const sb = artifacts.require("SimpleBank");
+
+module.exports = function (deployer) {
+  deployer.deploy(sb);
+};
+
+9. open ganache, new workspace select the project select truffle-config.js of BankingExInVSCodeG.
+10. Deploy the contract with
+11. H:\ BankingExInVSCodeG >truffle migrate –reset –network development.
+12. It will deploy the contract.
+13. Now we can interact with the contract as follow
+
+H:\ BankingExInVSCodeG >truffle console
+>>let instance=await SimpleBank.deployed()
+
+Deposit Ether (e.g., 10 ETH) using:
+await instance.deposit({ value: web3.utils.toWei("10", "ether"), from: accounts[3] });
+Check your balance:
+let bal = await instance.getBalance({ from: accounts[0] });
+console.log("Balance:", web3.utils.fromWei(bal.toString(), "ether"), "ETH");
+Withdraw some Ether:
+await instance.withdraw(web3.utils.toWei("2", "ether"), { from: accounts[0] });
