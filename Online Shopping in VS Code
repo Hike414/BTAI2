@@ -1,0 +1,80 @@
+OnlineShop.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract OnlineShop {
+    struct Product {
+        uint id;
+        string name;
+        uint price; // in wei
+        address payable seller;
+        address buyer;
+    }
+
+    uint public productCount = 0;
+    mapping(uint => Product) public products;
+
+    event ProductAdded(uint id, string name, uint price, address seller);
+    event ProductBought(uint id, address buyer);
+
+    //  Add a new product
+    function addProduct(string memory _name, uint _price) public {
+        require(_price > 0, "Price must be greater than zero");
+        productCount++;
+        products[productCount] = Product(productCount, _name, _price, payable(msg.sender), address(0));
+        emit ProductAdded(productCount, _name, _price, msg.sender);
+    }
+
+    //  Buy a product
+    function buyProduct(uint _id) public payable {
+        Product storage product = products[_id];
+        require(product.id > 0 && product.id <= productCount, "Invalid product");
+        require(msg.value == product.price, "Incorrect price");
+       // require(product.buyer == address(0), "Already sold");
+       productCount--;
+        product.seller.transfer(msg.value);
+        product.buyer = msg.sender;
+
+        emit ProductBought(_id, msg.sender);
+    }
+
+    //  Show all products in the shop
+    function showProducts() public view returns (
+        Product[] memory
+    ) {
+        Product[] memory allProducts = new Product[](productCount);
+        for (uint i = 0; i < productCount; i++) {
+            allProducts[i] = products[i + 1];
+        }
+        return allProducts;
+    }
+}
+Make changes in truffle-config.js as earlier
+1_initial_migrations.js
+const OnlineShop = artifacts.require("OnlineShop");
+module.exports = function (deployer) {
+  deployer.deploy(OnlineShop);
+};
+
+Save it
+For Compilation
+
+H:/>Online_Shop>truffle compile
+
+It will create a .json file in the build folder.
+Once compiled, open ganache, select the truffle-config.js file and start the new workspace.
+
+After that migrate the project to ganache as follows
+H:/>Online_Shop>truffle migrate – - reset – -network development
+
+It will move the project to ganache
+Next interact with the project as follows
+1.	let shop1=await OnlineShop.deployed();
+2.	await shop1.addProduct("Shoes", web3.utils.toWei("0.5", "ether"))
+3.	await shop1.addProduct("Laptop", web3.utils.toWei("0.5", "ether"))
+4.	await shop1.addProduct("watch", web3.utils.toWei("0.5", "ether"))
+5.	let all = await shop1.showProducts()
+6.	truffle(development)> all
+7.	await shop1.buyProduct(1, {from: accounts[1], value: web3.utils.toWei("0.5", "ether")})
+8.	all = await shop1.showProducts()
+9.	truffle(development)> all
