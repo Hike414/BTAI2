@@ -1,0 +1,47 @@
+% ---------- Define distances ----------
+distance(a, b, 10).
+distance(a, c, 15).
+distance(a, d, 20).
+distance(b, c, 35).
+distance(b, d, 25).
+distance(c, d, 30).
+
+% Since the graph is undirected, define symmetric distances
+distance(X, Y, D) :- distance(Y, X, D).
+
+% ---------- Calculate total distance of a tour ----------
+tour_distance([_], 0).
+tour_distance([City1, City2 | Rest], TotalDistance) :-
+    distance(City1, City2, D),
+    tour_distance([City2 | Rest], RestDistance),
+    TotalDistance is D + RestDistance.
+
+% ---------- Find all tours starting and ending at Start ----------
+tsp(Start, Path, Cost) :-
+    findall(City, (distance(Start, City, _), City \= Start), Cities1),
+    list_to_set(Cities1, Cities),
+    permutation(Cities, Perm),
+    append([Start], Perm, TempPath),
+    append(TempPath, [Start], Path),
+    tour_distance(Path, Cost).
+
+% ---------- Find the optimal (shortest) tour ----------
+shortest_tsp(Start, ShortestPath, MinCost) :-
+    setof([Cost, P], tsp(Start, P, Cost), Set),
+    Set = [[MinCost, ShortestPath] | _].
+
+How to Run
+
+1. Save the code into a file named `tsp.pl`.
+2. Load it in SWI-Prolog:
+
+?- [tsp].
+
+3. Query to get the shortest tour starting from `a`:
+
+?- shortest_tsp(a, Path, Cost).
+
+Output:
+
+Path = [a, b, d, c, a],
+Cost = 80.
