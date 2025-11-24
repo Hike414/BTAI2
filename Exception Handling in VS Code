@@ -1,0 +1,97 @@
+1.	mkdir ExceptionEx1
+2.	cd ExceptionEx1
+3.	H:\ ExceptionEx1>truffle init
+4.	Copy the following code in contracts folder
+Exception1.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.16;
+
+contract ExceptionHandlingExample {
+    uint public balance;
+
+    // Function to deposit Ether into the contract
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than zero");
+        balance += msg.value;
+    }
+
+    // Function to withdraw Ether
+    function withdraw(uint amount) public {
+        // Using require() to validate user input
+        require(amount > 0, "Amount must be greater than zero");
+        require(amount <= balance, "Insufficient balance");
+
+        balance -= amount;
+
+        // If condition fails, revert() is used for custom errors
+        if (amount > 1 ether) {
+            revert("Withdrawal limit exceeded (max 1 ether allowed)");
+        }
+
+        payable(msg.sender).transfer(amount);
+    }
+
+    // Function to demonstrate assert()
+    function testAssert() public view returns (string memory) {
+        // Assert is used to check internal invariants (conditions that should NEVER fail)
+        assert(balance >= 0);
+        return "Assert check passed, balance is non-negative";
+    }
+} 
+
+
+5.	Change the truffle-config.js file as 
+	development: {
+	      host: "127.0.0.1",     // Localhost (default: none)
+	      port: 7545,            // Standard Ethereum port (default: none)
+	      network_id: "*",       // Any network (default: none)
+	     },
+
+compilers: {
+    solc: {
+      version: "0.8.16",      // Fetch exact version from solc-bin (default: truffle's version)
+      // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
+      // settings: {          // See the solidity docs for advice about optimization and evmVersion
+      //  optimizer: {
+      //    enabled: false,
+      //    runs: 200
+      //  },
+      //  evmVersion: "byzantium"
+      // }
+    }
+  },
+
+
+6. H:\ ExceptionEx1>truffle compile
+7. It will create ExceptionHandlingExample.json file in build folder.
+8. create 1_initial_Migration.js as
+const ExMi = artifacts.require("ExceptionHandlingExample");
+
+module.exports = function (deployer) {
+  deployer.deploy(ExMi);
+};
+
+9. open ganache, new workspace select the project select truffle-config.js of ExceptionEx1.
+10. Deploy the contract with
+11. H:\ ExceptionEx1>truffle migrate –reset –network development.
+12. It will deploy the contract.
+13. Now we can interact with the contract as follow
+let instance = await ExceptionHandlingExample.deployed()
+
+// Check initial balance
+(await instance.balance()).toString()
+
+// Deposit some ether (will fail if you don’t send value)
+await instance.deposit({value: web3.utils.toWei("0.5", "ether"), from: accounts[0]})
+
+// Check balance again
+(await instance.balance()).toString()
+
+// Withdraw a small amount (valid)
+await instance.withdraw(web3.utils.toWei("0.2", "ether"), {from: accounts[0]})
+
+// Try to withdraw more than balance (will trigger require)
+await instance.withdraw(web3.utils.toWei("2", "ether"), {from: accounts[0]})
+
+// Run assert check
+await instance.testAssert()
