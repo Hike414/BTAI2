@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity 0.8.30;
+
+contract SimpleEnumExample {
+    // Define an enum for order status
+    enum OrderStatus {
+        Pending,    // 0
+        Confirmed,  // 1
+        Shipped,    // 2
+        Delivered,  // 3
+        Cancelled   // 4
+    }
+    
+    // State variable using the enum
+    OrderStatus public currentStatus;
+    
+        
+    // Set initial status in constructor
+    constructor() {
+        currentStatus = OrderStatus.Pending;
+    }
+    
+    // Function to update status
+    function updateStatus(OrderStatus _newStatus) public {
+        currentStatus = _newStatus;
+        
+    }
+    
+    // Get current status as string
+    function getStatusString() public view returns (string memory) {
+        if (currentStatus == OrderStatus.Pending) return "Pending";
+        if (currentStatus == OrderStatus.Confirmed) return "Confirmed";
+        if (currentStatus == OrderStatus.Shipped) return "Shipped";
+        if (currentStatus == OrderStatus.Delivered) return "Delivered";
+        if (currentStatus == OrderStatus.Cancelled) return "Cancelled";
+        return "Unknown";
+    }
+    
+    // Get current status as uint
+    function getStatusNumber() public view returns (uint) {
+        return uint(currentStatus);
+    }
+}
