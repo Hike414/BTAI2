@@ -1,0 +1,40 @@
+% Define actions: move, push, climb, grasp
+% State is represented as: 
+% state(MonkeyPosition, MonkeyStatus, BoxPosition, HasBanana)
+
+% Initial state: monkey at left, on floor, box at right, no banana
+initial(state(left, floor, right, no)).
+
+% Goal state: monkey has the banana
+goal(state(_, _, _, yes)).
+
+% Move from one location to another
+action(move(X, Y),
+       state(X, floor, B, H),
+       state(Y, floor, B, H)).
+
+% Push box from one location to another
+action(push(X, Y),
+       state(X, floor, X, H),
+       state(Y, floor, Y, H)).
+
+% Climb onto box
+action(climb,
+       state(X, floor, X, H),
+       state(X, onbox, X, H)).
+
+% Grasp banana
+action(grasp,
+       state(middle, onbox, middle, no),
+       state(middle, onbox, middle, yes)).
+
+% Recursive path-finding predicate
+solve(State, []) :- goal(State).
+solve(State, [Action | Rest]) :-
+    action(Action, State, NewState),
+    solve(NewState, Rest).
+
+% To run the program: ?- initial(I), solve(I, Plan).
+
+Example Query to Run:
+?- initial(I), solve(I, Plan).
