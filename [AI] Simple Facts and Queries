@@ -1,0 +1,18 @@
+(prog1.pl) --
+% A. Ram likes mango.
+likes(ram, mango).
+% B. Seema is a girl.
+girl(seema).
+% C. Bill likes Cindy.
+likes(bill, cindy).
+% D. Rose is red.
+color(rose, red).
+% E. John owns gold.
+owns(john, gold).
+
+Output:
+?-consult(‘prog1’).
+?- likes(ram,X).
+X = mango
+?-owns(Y,gold).
+Y=john
